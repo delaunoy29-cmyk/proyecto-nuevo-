@@ -1,0 +1,5 @@
+# Protege archivos internos
+<FilesMatch "^(config|lib)\.php$|\.(sql|ino|txt|md)$">
+  Require all denied
+</FilesMatch>
+Options -Indexes
