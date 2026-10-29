@@ -122,7 +122,16 @@ function cabecera($titulo, $extra_head = '') {
     echo '<!doctype html><html lang="es"><head><meta charset="utf-8">'
        . '<meta name="viewport" content="width=device-width,initial-scale=1">'
        . '<title>' . h($titulo) . ' · ' . h(NOMBRE_SISTEMA) . '</title>'
-       . '<link rel="stylesheet" href="estilo.css">' . $extra_head . '</head><body>';
+       . '<link rel="stylesheet" href="estilo.css">'
+       // Para instalarla como app en el celular (Agregar a la pantalla principal)
+       . '<link rel="manifest" href="manifest.webmanifest">'
+       . '<meta name="theme-color" content="#0e7c66">'
+       . '<link rel="icon" type="image/png" sizes="32x32" href="iconos/favicon-32.png">'
+       . '<link rel="apple-touch-icon" href="iconos/apple-touch-icon.png">'
+       . '<meta name="apple-mobile-web-app-capable" content="yes">'
+       . '<meta name="mobile-web-app-capable" content="yes">'
+       . '<meta name="apple-mobile-web-app-title" content="SERVIMAXX">'
+       . $extra_head . '</head><body>';
     echo '<header class="top"><a class="marca" href="index.php"><span class="logo">S</span>' . h(NOMBRE_SISTEMA) . '</a>';
     if ($u) {
         echo '<nav><a href="index.php">Equipos</a>';
