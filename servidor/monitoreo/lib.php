@@ -68,6 +68,8 @@ function iniciar_sesion() {
 function usuario() { iniciar_sesion(); return $_SESSION['u'] ?? null; }
 function es_admin() { $u = usuario(); return $u && $u['rol'] === 'admin'; }
 function exigir_login() { if (!usuario()) { header('Location: index.php'); exit; } }
+// La clave de ejemplo de config.php nunca debe permitir la entrada.
+function clave_sin_configurar($clave) { return $clave === '' || stripos($clave, 'CAMBIAR') === 0; }
 function exigir_admin() { exigir_login(); if (!es_admin()) { http_response_code(403); exit('Sin permiso'); } }
 
 function csrf() {

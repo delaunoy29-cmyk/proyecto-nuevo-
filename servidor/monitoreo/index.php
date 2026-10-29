@@ -8,7 +8,7 @@ if (!usuario() && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $us = trim($_POST['usuario'] ?? '');
     $cl = (string)($_POST['clave'] ?? '');
     $u = null;
-    if ($us === ADMIN_USER && ADMIN_PASS !== 'CAMBIAR_CLAVE_ADMIN' && hash_equals(ADMIN_PASS, $cl)) {
+    if ($us === ADMIN_USER && !clave_sin_configurar(ADMIN_PASS) && hash_equals(ADMIN_PASS, $cl)) {
         $u = ['rol' => 'admin', 'nombre' => 'Administrador', 'cliente_id' => null];
     } else {
         $c = q('SELECT * FROM clientes WHERE usuario = ? AND activo = 1', [$us])->fetch();
@@ -25,7 +25,7 @@ if (!usuario()) {
     cabecera('Ingresar');
     echo '<form class="login card" method="post"><h1>Ingresar</h1>';
     if ($error) echo '<p class="err">' . h($error) . '</p>';
-    if (ADMIN_PASS === 'CAMBIAR_CLAVE_ADMIN') echo '<p class="err">Configura ADMIN_PASS en config.php</p>';
+    if (clave_sin_configurar(ADMIN_PASS)) echo '<p class="err">Configura ADMIN_PASS en config.php</p>';
     echo '<label>Usuario<input name="usuario" autocomplete="username" required autofocus></label>'
        . '<label>Clave<input type="password" name="clave" autocomplete="current-password" required></label>'
        . '<button>Entrar</button></form>';
