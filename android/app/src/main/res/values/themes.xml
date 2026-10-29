@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Servimaxx" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/acento</item>
+        <item name="colorAccent">@color/acento</item>
+        <item name="android:statusBarColor">@color/acento</item>
+        <item name="android:windowBackground">@color/fondo</item>
+    </style>
+
+    <!-- Pantalla de inicio con el ícono mientras carga -->
+    <style name="Theme.Servimaxx.Inicio" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/acento</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.Servimaxx</item>
+    </style>
+</resources>

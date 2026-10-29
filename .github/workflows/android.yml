@@ -1,0 +1,65 @@
+name: App Android
+
+# Construye el APK de SERVIMAXX en cada cambio de la carpeta android/.
+# En la rama main además lo publica en Releases para descargarlo desde el celular:
+# https://github.com/delaunoy29-cmyk/proyecto-nuevo-/releases/latest/download/SERVIMAXX.apk
+on:
+  push:
+    branches: [main]
+    paths: ["android/**", ".github/workflows/android.yml"]
+  pull_request:
+    paths: ["android/**", ".github/workflows/android.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Preparar llave de firma (si está configurada)
+        env:
+          FIRMA_ARCHIVO: ${{ secrets.FIRMA_ARCHIVO }}
+        run: |
+          if [ -n "$FIRMA_ARCHIVO" ]; then
+            echo "$FIRMA_ARCHIVO" | base64 -d > "$RUNNER_TEMP/firma.jks"
+            echo "FIRMA_ARCHIVO_RUTA=$RUNNER_TEMP/firma.jks" >> "$GITHUB_ENV"
+          fi
+
+      - name: Construir APK
+        working-directory: android
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+          FIRMA_CLAVE: ${{ secrets.FIRMA_CLAVE }}
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Renombrar APK
+        run: cp android/app/build/outputs/apk/release/app-release.apk SERVIMAXX.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SERVIMAXX-apk
+          path: SERVIMAXX.apk
+
+      - name: Publicar en Releases
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: app-v${{ github.run_number }}
+          name: App SERVIMAXX para Android (versión ${{ github.run_number }})
+          make_latest: true
+          files: SERVIMAXX.apk
+          body: |
+            Descarga **SERVIMAXX.apk** desde el celular Android y ábrelo para instalar.
+            Si el celular pregunta, permite instalar apps de esta fuente.
+            Las versiones nuevas se instalan encima de la anterior sin perder nada.

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SERVIMAXX</string>
+    <string name="sin_conexion_titulo">Sin conexión</string>
+    <string name="sin_conexion_texto">No se pudo abrir la plataforma. Revisa que el celular tenga internet y vuelve a intentar.</string>
+    <string name="reintentar">Reintentar</string>
+    <string name="descargando">Descargando %1$s</string>
+    <string name="descarga_error">No se pudo descargar el archivo</string>
+</resources>
