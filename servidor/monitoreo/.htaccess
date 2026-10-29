@@ -3,3 +3,6 @@
   Require all denied
 </FilesMatch>
 Options -Indexes
+
+# Manifiesto de la app para celulares
+AddType application/manifest+json .webmanifest
