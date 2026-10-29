@@ -1,0 +1,109 @@
+=====================================================================
+ SERVIMAXX MONITOREO - Plataforma unificada (pH, avícola, pivotes)
+ Guía de instalación en Host.cl  ·  servimaxx.cl/monitoreo
+=====================================================================
+
+QUÉ INCLUYE
+- Un solo panel para todos tus clientes y equipos.
+- Cada cliente entra con su usuario y ve SOLO sus equipos. Tú (admin) ves todo.
+- Tipos de equipo: pH metro, galpón avícola (temp, humedad, NH3, CO2),
+  pivote de riego (GPS con mapa satelital) y genérico (cualquier sensor).
+- Gráficos de 24 h / 7 días / 30 días, descarga CSV, alarmas por correo.
+- Firmware único para ESP32 (eliges el módulo con una línea).
+
+---------------------------------------------------------------------
+PASO 1 - CREAR LA BASE DE DATOS  (cPanel: servimaxx.cl:2083)
+---------------------------------------------------------------------
+1. Bases de datos MySQL > Crear base:  monitoreo
+   (cPanel la deja como servimax_monitoreo)
+2. Crear usuario:  monuser  con una clave segura
+   (queda servimax_monuser). ANOTA LA CLAVE.
+3. "Agregar usuario a la base" > marcar TODOS LOS PRIVILEGIOS.
+4. phpMyAdmin > clic en servimax_monitoreo > pestaña Importar >
+   elegir instalar.sql > Continuar. Deben aparecer 5 tablas.
+
+---------------------------------------------------------------------
+PASO 2 - SUBIR LOS ARCHIVOS
+---------------------------------------------------------------------
+1. Administrador de archivos > public_html > Cargar > monitoreo_servimaxx.zip
+2. Clic derecho en el zip > Extraer. Queda la carpeta  public_html/monitoreo
+   (Si quedó monitoreo/monitoreo, mueve el contenido un nivel arriba.)
+3. Activa "Mostrar archivos ocultos" y verifica que exista  .htaccess
+   (protege config.php y otros archivos internos).
+
+---------------------------------------------------------------------
+PASO 3 - CONFIGURAR  (editar monitoreo/config.php)
+---------------------------------------------------------------------
+  DB_NAME   = servimax_monitoreo
+  DB_USER   = servimax_monuser
+  DB_PASS   = la clave del paso 1
+  ADMIN_USER / ADMIN_PASS = tu usuario y clave de administrador
+  MAIL_FROM  = alertas@servimaxx.cl  (créalo en cPanel > Cuentas de correo)
+  MAIL_ADMIN = correo donde te llegan TODAS las alarmas
+
+---------------------------------------------------------------------
+PASO 4 - PRIMER USO
+---------------------------------------------------------------------
+1. Entra a  https://servimaxx.cl/monitoreo  con ADMIN_USER / ADMIN_PASS.
+2. Administrar > "Nuevo cliente": nombre, RUT, usuario, clave y correo
+   de alarmas (al cliente le llegan las alarmas de SUS equipos).
+3. "Nuevo equipo": elige cliente, tipo y nombre (ej. "Galpón 3").
+   Para pivotes ingresa la latitud/longitud del CENTRO y el largo en m
+   (sácalos de Google Maps: clic derecho en el centro del círculo).
+4. Al crear el equipo verás su CLAVE API y una URL de prueba.
+   Abre la URL en el navegador: si responde "ok":true ya funciona y el
+   equipo aparece "En línea" en el panel.
+5. En el equipo ajusta los límites de alarma (mín./máx.) de cada variable.
+
+Agregar más clientes: repite el punto 2. No hay límite.
+Un galpón = un equipo. Una avícola con 6 galpones = 6 equipos del mismo cliente.
+
+---------------------------------------------------------------------
+PASO 5 - PROGRAMAR EL ESP32  (firmware/esp32_monitoreo/esp32_monitoreo.ino)
+---------------------------------------------------------------------
+Arduino IDE > Preferencias > URLs adicionales:
+  https://espressif.github.io/arduino-esp32/package_esp32_index.json
+Gestor de placas: instalar "esp32" (Espressif). Placa: ESP32 Dev Module.
+
+En el archivo:
+  - Deja sin // SOLO el módulo: MODULO_PH, MODULO_AVICOLA o MODULO_PIVOTE
+  - WIFI_SSID, WIFI_PASS, API_KEY (la del equipo en Administrar)
+
+Librerías (Herramientas > Administrar bibliotecas):
+  pH .......... Adafruit ADS1X15
+  Avícola ..... Adafruit ADS1X15, Adafruit SHT31 Library
+  Pivote ...... TinyGPSPlus  (+ Adafruit ADS1X15 si usas presión)
+
+Abre el Monitor Serie a 115200 para ver cada envío y la respuesta.
+
+CABLEADO RESUMIDO
+  pH 4-20 mA:   ADS1115 (SDA 21, SCL 22). Lazo 4-20 mA por shunt 150 Ω en A0.
+                Ajusta PH_EN_4MA / PH_EN_20MA según el rango del transmisor.
+  Avícola:      SHT31 en I2C (temp/humedad); MH-Z19B CO2 a GPIO16/17 (5 V);
+                NH3: sensor industrial 4-20 mA (0-100 ppm) en A0 del ADS1115.
+                (Los sensores MQ-137 baratos no sirven para medición confiable.)
+  Pivote:       GPS NEO-6M/M8N a GPIO16/17, montado en la última torre.
+                El ángulo lo calcula la plataforma con el centro configurado.
+
+---------------------------------------------------------------------
+FORMATO DE LA API (para cualquier otro equipo o sensor)
+---------------------------------------------------------------------
+  https://servimaxx.cl/monitoreo/api.php?key=CLAVE&variable1=valor&variable2=valor
+
+  Ejemplo:  ...api.php?key=CLAVE&ph=7.12&temp=18.4
+  También acepta POST o JSON {"key":"CLAVE","ph":7.12}.
+  Las variables nuevas se crean solas (minúsculas, sin espacios, máx. 20).
+
+---------------------------------------------------------------------
+MANTENCIÓN Y NOTAS
+---------------------------------------------------------------------
+- Un equipo enviando cada 60 s genera ~2 MB de datos al mes. En
+  Administrar > Mantención puedes borrar lecturas de más de 1 año.
+- Hosting compartido: cómodo hasta unas decenas de equipos. Si crece a
+  cientos, se migra a un VPS copiando archivos y base, sin cambios.
+- La plataforma antigua servimaxx.cl/phmetro sigue funcionando. Para
+  pasar ese pH metro aquí: crea un equipo tipo pH y carga en el ESP32
+  la nueva URL y clave.
+- Si una alarma sigue fuera de rango, se repite el correo cada 30 min
+  (ALARMA_REPETIR_MIN en config.php).
+- Si los correos no llegan: revisa spam y que MAIL_FROM exista en cPanel.

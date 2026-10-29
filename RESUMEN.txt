@@ -1,0 +1,57 @@
+SERVIMAXX MONITOREO – RESUMEN DEL PROYECTO
+Actualizado: 28-10-2026 · SERVIMAXX SpA
+
+1. QUÉ ES
+Plataforma web multi-cliente en https://servimaxx.cl/monitoreo (Host.cl, cPanel, PHP + MySQL)
+para monitorear equipos de terreno: pH metros, galpones avícolas (temperatura, humedad, NH3, CO2)
+y pivotes de riego (GPS). Cada cliente entra con su usuario y ve solo sus equipos; el administrador
+ve todo. Incluye gráficos 24 h / 7 d / 30 d, alarmas por correo, descarga CSV y mapa para pivotes.
+
+2. CONTENIDO DE ESTE ZIP
+servidor/monitoreo/          Código actual de la plataforma, descargado del servidor el 28-10-2026
+  index.php                  Login y panel de equipos
+  equipo.php                 Detalle de un equipo: valores, gráficos, alarmas, CSV, mapa
+  admin.php                  Administración de clientes y equipos (claves API)
+  api.php                    Recepción de datos de las tarjetas (con soporte de lecturas atrasadas "hace")
+  lib.php                    Funciones comunes y plantillas por tipo de equipo
+  config.php                 Configuración (CLAVES REEMPLAZADAS por CAMBIAR_CLAVE en esta copia)
+  instalar.sql               Tablas: clientes, equipos, variables, lecturas, alarmas
+  estilo.css, salir.php, .htaccess, LEEME.txt (guía de instalación original)
+  firmware/esp32_monitoreo/  Programa ESP32 por WiFi (módulos pH, avícola, pivote)
+tarjeta_4g_galpon/galpon_4g.ino  Programa de la tarjeta de galpón con 4G (LilyGO)
+planos/Instrumentacion_Galpon_Avicola.pdf  Planos AVI-01 (tablero) y AVI-02 (ubicación y materiales)
+anterior_phmetro/            Primera versión (servimaxx.cl/phmetro), solo pH; reemplazada por la plataforma
+
+3. LO QUE HICIMOS (cronología)
+- 08-10: dominio servimaxx.cl y hosting Host.cl revisados. Primera plataforma de pH (servimaxx.cl/phmetro)
+  con ESP32 + transmisor 4–20 mA (ADS1115 + shunt 150 Ω).
+- ~17-10: plataforma unificada multi-cliente servimaxx.cl/monitoreo (pH, avícola, pivotes).
+- 20-10: instrumentación de galpón avícola con transmisores industriales 4–20 mA (temp/HR, NH3, CO2),
+  tablero IP65 con fuente 24 V, UPS, baliza local y antena 4G. Planos AVI-01 y AVI-02.
+- 20-10: tarjeta LilyGO 4G (T-SIM7600SA-H o T-A7670SA) enlazada a la plataforma por la clave API
+  del equipo; envía cada 5 min y guarda hasta 24 h sin señal.
+- 20-10: api.php modificada en el servidor para aceptar el campo "hace" (respaldo: api.php.respaldo-2026-10-20).
+- 21-10: ficha "Proyecto Monitoreo" fijada en la barra lateral de Claude; presupuesto estimado por galpón.
+
+4. CÓMO VIAJA EL DATO (galpón 4G)
+Transmisores 4–20 mA → ADS1115 → ESP32 → módem 4G (chip) → HTTPS → monitoreo/api.php
+(clave API del equipo) → tablas lecturas/variables/alarmas → panel, gráficos y correos.
+
+5. ENLAZAR UN GALPÓN NUEVO
+1) Plataforma → Administrar → Nuevo equipo tipo "Galpón avícola" → copiar clave API.
+2) Arduino IDE: placa esp32 (Espressif), librerías TinyGSM y Adafruit ADS1X15.
+3) En galpon_4g.ino: elegir PLACA_T_SIM7600 o PLACA_T_A7670, pegar API_KEY, revisar APN.
+4) Antena 4G y batería 18650 puestas, chip sin PIN; subir y revisar Monitor Serie (115200).
+
+6. PRESUPUESTO ESTIMADO POR GALPÓN (sin IVA, a confirmar con cotizaciones)
+Materiales ≈ $700.000 – 970.000 · Mano de obra ≈ $200.000 – 300.000 · Chip ≈ $5.000 – 8.000/mes
+Precio de venta sugerido: instalación $1,4 – 1,8 MM; mensualidad $35.000 – 50.000.
+
+7. PENDIENTES
+- Cargar galpon_4g.ino en la LilyGO y verificar el envío.
+- Comprar transmisores y armar el tablero TG-01.
+- Seguridad: borrar public_html/monitoreo_servimaxx.zip (descargable por cualquiera) y usar claves
+  distintas para la base de datos y el administrador.
+
+PARA REINSTALAR EN OTRO SERVIDOR
+Seguir servidor/monitoreo/LEEME.txt; importar instalar.sql y completar las claves en config.php.
